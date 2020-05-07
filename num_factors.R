@@ -103,3 +103,29 @@ plot_corr <- function(df){
 }
 
 plot_corr(data.frame(op1_nona_df))
+
+# MSCEIT Option 2 Categories (31 categories) 
+option_2 <- cbind(cex$STAI.State, cex$STAI.Trait, cex$BDI_Total.Total, cex$PANAS.Negative, 
+                  cex$PANAS.Positive, cex$X16PF.Basics..Sten..Q4.Tension, 
+                  cex$X16PF.Basics..Sten..C.Emotional.Stability,
+                  cex$Pair.Cancellation.SS, cex$X16PF.Basics..Sten..B.Reasoning,
+                  cex$Applied.Problems.SS, cex$IQ_VCI, cex$X16PF.Basics..Sten..O.Apprehension,
+                  cex$IQ_PRI, cex$X16PF.Basics..Sten..G.Rule.Consciousness, 
+                  cex$X16PF.Basics..Sten..Q1.Openness.to.Change, cex$Passage.Comprehension.SS, 
+                  cex$X16PF.Basics..Sten..A.Warmth, cex$X16PF.Basics..Sten..Q2.Self.Reliance, 
+                  cex$X16PF.Basics..Sten..N.Privateness, cex$X16PF.Basics..Sten..F.Liveliness, 
+                  cex$X16PF.Basics..Sten..H.Social.Boldness, cex$SNI.People_in_network,
+                  cex$X16PF.Basics..Sten..M.Abstractedness, cex$X16PF.Basics..Sten..Q3.Perfectionism,
+                  cex$X16PF.Basics..Sten..E.Dominance,cex$X16PF.Basics..Sten..L.Vigilance, 
+                  cex$X16PF.Basics..Sten..I.Sensitivity, cex$MSCEIT..standard.scores..B1_Perceiving,
+                  cex$MSCEIT..standard.scores..B2_Using, cex$MSCEIT..standard.scores..B3_Understanding,
+                  cex$MSCEIT..standard.scores..B4_Managing)
+
+op2_df <- data.frame(option_2) # 110 subjects
+sum(is.na(op2_df)/prod(dim(op2_df))) # 0.06745
+op2_nona_df <- data.frame(na.omit(op2_df)) # 65 subjects
+imputed_op2 <- impute_df(op2_df) #110 subjects 
+# Find the number of factors for option 2
+op2_nona <- find_factors(op2_nona_df)
+# Repeat above with imputed option 1 data
+op2_imp <- find_factors(imputed_op2)
