@@ -1,0 +1,106 @@
+setwd("Documents/Caltech/Senior\ Year/Spring/cs11")
+
+# Libraries
+library(corrplot)
+library(paran)
+library(nFactors)
+library(paramap)
+
+# load the file
+conteData <- read.csv(file = 'PARL_Basics_Scores_20200401_Rona.csv', stringsAsFactors = FALSE)
+# exclude values with low Quality measure
+cex <- subset(conteData, Include..Exclude. == 'Include')
+
+# Option 1 categories without SS
+option_1_noss <- cbind(cex$STAI.State, cex$STAI.Trait, cex$BDI_Total.Total, cex$PANAS.Negative, 
+                       cex$PANAS.Positive, cex$X16PF.Basics..Sten..Q4.Tension, 
+                       cex$X16PF.Basics..Sten..C.Emotional.Stability, cex$MSCEIT..standard.scores..B_Facilitation,
+                       cex$X16PF.Basics..Sten..B.Reasoning, cex$IQ_VCI, cex$X16PF.Basics..Sten..O.Apprehension,
+                       cex$IQ_PRI, cex$X16PF.Basics..Sten..G.Rule.Consciousness, 
+                       cex$X16PF.Basics..Sten..Q1.Openness.to.Change,cex$X16PF.Basics..Sten..A.Warmth, 
+                       cex$X16PF.Basics..Sten..Q2.Self.Reliance, 
+                       cex$X16PF.Basics..Sten..N.Privateness, cex$X16PF.Basics..Sten..F.Liveliness, 
+                       cex$X16PF.Basics..Sten..H.Social.Boldness, cex$SNI.People_in_network,
+                       cex$MSCEIT..standard.scores..F_Sensations, cex$MSCEIT..standard.scores..A_Faces,
+                       cex$MSCEIT..standard.scores..G_Blends, cex$MSCEIT..standard.scores..E_Pictures,
+                       cex$X16PF.Basics..Sten..M.Abstractedness, cex$MSCEIT..standard.scores..C_Changes, 
+                       cex$MSCEIT..standard.scores..H_Social.Management, cex$X16PF.Basics..Sten..Q3.Perfectionism,
+                       cex$MSCEIT..standard.scores..D_Emotion.Mangement, cex$X16PF.Basics..Sten..E.Dominance,
+                       cex$X16PF.Basics..Sten..L.Vigilance, cex$X16PF.Basics..Sten..I.Sensitivity)
+
+# Function to impute NA values with the column mean
+impute_df <- function(df) {
+  to_ret <- df
+  for(i in 1:ncol(df)) {
+    to_ret[is.na(to_ret[,i]), i] <- mean(to_ret[, i], na.rm=TRUE)
+  }
+  return(to_ret)
+}
+
+op1_noss_df <- data.frame(option_1_noss)
+sum(is.na(op1_noss_df)/prod(dim(op1_noss_df))) # 0.05909
+op1_noss_nona_df <- data.frame(na.omit(op1_noss_df)) # 84 subjects
+imp_op1_noss <- impute_df(op1_noss_df)
+
+# Function to compute the overall correlation matrix
+plot_corr <- function(df){
+  M <- cor(df, method="spearman")
+  corrplot(M, method="color")
+}
+plot_corr(data.frame(op1_noss_nona_df))
+
+# Function to extract factors
+exFac <- function(df, numFac){
+  fit <- factanal(df, numFac, rotation="varimax")
+  # Plot factor 1 by factor 2
+  load <- fit$loadings[,1:2]
+  plot(load, type="n") #set up plot
+  text(load, labels=names(df), cex=.7)
+  return(fit)
+}
+
+res1 <- exFac(op1_noss_nona_df, 3)
+
+# MSCEIT Option 2 Categories (31 categories) 
+option_2 <- cbind(cex$STAI.State, cex$STAI.Trait, cex$BDI_Total.Total, cex$PANAS.Negative, 
+                  cex$PANAS.Positive, cex$X16PF.Basics..Sten..Q4.Tension, 
+                  cex$X16PF.Basics..Sten..C.Emotional.Stability,
+                  cex$Pair.Cancellation.SS, cex$X16PF.Basics..Sten..B.Reasoning,
+                  cex$Applied.Problems.SS, cex$IQ_VCI, cex$X16PF.Basics..Sten..O.Apprehension,
+                  cex$IQ_PRI, cex$X16PF.Basics..Sten..G.Rule.Consciousness, 
+                  cex$X16PF.Basics..Sten..Q1.Openness.to.Change, cex$Passage.Comprehension.SS, 
+                  cex$X16PF.Basics..Sten..A.Warmth, cex$X16PF.Basics..Sten..Q2.Self.Reliance, 
+                  cex$X16PF.Basics..Sten..N.Privateness, cex$X16PF.Basics..Sten..F.Liveliness, 
+                  cex$X16PF.Basics..Sten..H.Social.Boldness, cex$SNI.People_in_network,
+                  cex$X16PF.Basics..Sten..M.Abstractedness, cex$X16PF.Basics..Sten..Q3.Perfectionism,
+                  cex$X16PF.Basics..Sten..E.Dominance,cex$X16PF.Basics..Sten..L.Vigilance, 
+                  cex$X16PF.Basics..Sten..I.Sensitivity, cex$MSCEIT..standard.scores..B1_Perceiving,
+                  cex$MSCEIT..standard.scores..B2_Using, cex$MSCEIT..standard.scores..B3_Understanding,
+                  cex$MSCEIT..standard.scores..B4_Managing)
+# MSCEIT Option 2 Categories (remove SS)
+option_2_noss <- cbind(cex$STAI.State, cex$STAI.Trait, cex$BDI_Total.Total, cex$PANAS.Negative, 
+                       cex$PANAS.Positive, cex$X16PF.Basics..Sten..Q4.Tension, 
+                       cex$X16PF.Basics..Sten..C.Emotional.Stability,
+                       cex$X16PF.Basics..Sten..B.Reasoning, cex$IQ_VCI, cex$X16PF.Basics..Sten..O.Apprehension,
+                       cex$IQ_PRI, cex$X16PF.Basics..Sten..G.Rule.Consciousness, 
+                       cex$X16PF.Basics..Sten..Q1.Openness.to.Change,
+                       cex$X16PF.Basics..Sten..A.Warmth, cex$X16PF.Basics..Sten..Q2.Self.Reliance, 
+                       cex$X16PF.Basics..Sten..N.Privateness, cex$X16PF.Basics..Sten..F.Liveliness, 
+                       cex$X16PF.Basics..Sten..H.Social.Boldness, cex$SNI.People_in_network,
+                       cex$X16PF.Basics..Sten..M.Abstractedness, cex$X16PF.Basics..Sten..Q3.Perfectionism,
+                       cex$X16PF.Basics..Sten..E.Dominance,cex$X16PF.Basics..Sten..L.Vigilance, 
+                       cex$X16PF.Basics..Sten..I.Sensitivity, cex$MSCEIT..standard.scores..B1_Perceiving,
+                       cex$MSCEIT..standard.scores..B2_Using, cex$MSCEIT..standard.scores..B3_Understanding,
+                       cex$MSCEIT..standard.scores..B4_Managing)
+
+op2_df <- data.frame(option_2) # 110 subjects
+sum(is.na(op2_df)/prod(dim(op2_df))) # 0.06745
+op2_nona_df <- data.frame(na.omit(op2_df)) # 65 subjects
+imputed_op2 <- impute_df(op2_df) #110 subjects 
+
+op2_noss_df <- data.frame(option_2_noss)
+sum(is.na(op2_noss_df)/prod(dim(op2_noss_df))) # 0.0338
+op2_noss_nona_df <- data.frame(na.omit(op2_noss_df)) # 84 subjects
+imp_op2_noss <- impute_df(op2_noss_df)
+
+plot_corr(data.frame(op2_nona_df))
