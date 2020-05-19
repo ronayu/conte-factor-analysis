@@ -43,26 +43,37 @@ plot_corr <- function(df){
   corrplot(M, method="color")
 }
 
+# Function to write number of factors to file 
+write_file <- function(method, numFac, fileName){ 
+  cat(method, "\t", numFac, "\n", file=fileName,fill=FALSE, append=TRUE)
+}
+
 # Function to calculate number of factors 
-find_factors <- function(df) {
+find_factors <- function(df, fileName) {
   # Velicer's MAP
-  MAP(df, corkind="spearman", verbose=TRUE)
+  a <- MAP(df, corkind="spearman", verbose=TRUE)
+  write_file("Velicer's 1976", a[[3]][1], fileName)
+  write_file("Velicer's 2000", a[[4]][1], fileName)
   # Horn's 
-  paran(df, cfa=TRUE, graph=TRUE)
+  a <- paran(df, cfa=TRUE, graph=FALSE)
+  write_file("Horn's PA", a[[1]][1], fileName)
   # Scree NOC
   aparallel <- eigenBootParallel(x=df, cor=TRUE, quantile=0.95,method="spearman")$quantile
   r <- nScree(x=df, aparallel=aparallel, cor=TRUE, model = "factors", method="spearman")
-  print("*****Scree's Test*****")
-  print(r)
+  a <- r[[1]][1]
+  a <- as.integer(a)
+  print(r) 
+  write_file("Cattell's Scree Test", a, fileName)
   # CNG
-  cng <- nCng(x=df, cor=TRUE, model="factors",
-              details=TRUE, method="spearman")
+  cng <- nCng(x=df, cor=TRUE, model="factors", details=TRUE, method="spearman")
+  write_file("Cng", cng[[2]], fileName)
   print("*****Cng*****")
   print(cng)
   # Multiply regression (b coeff)
   print("*****Zoski B Coefficient*****")
-  print(nMreg(x=df, cor=TRUE, model="factors",
-              details=TRUE, method="spearman"))
+  a <- nMreg(x=df, cor=TRUE, model="factors",details=TRUE, method="spearman")
+  write_file("Zoski", a[[2]][[1]], fileName)
+  print(a)
 }
 
 # Function to extract factors
@@ -76,16 +87,17 @@ exFac <- function(df, numFac){
   return((fit$loadings))
 }
 
-# Function to conduct factor extraction after removing X random subjects
+# Function to estimate number of factors after removing X random subjects
 # df: dataframe. numSubj: maximum number of subjects to remove 
-remSubj <- function(df, numSubj){
+remSubj <- function(df, numSubj, fileName){
+  cat("New Trial", "\n", file=fileName, fill=FALSE, append=FALSE)
   n <- dim(df)[1] # number of rows 
   r <- seq(1, numSubj) # 1 to numSubj
   for(numRemoved in r){
     toRemove <- sample(1:n, numRemoved, replace=F)
     rem <- df[-toRemove, ]
-    print("Number of subjects removed is %i", numRemoved)
-    find_factors(rem) # find factors 
+    cat("Number of subjects removed is: ", numRemoved, "\n", file=fileName, fill=FALSE, append=TRUE)
+    find_factors(rem, fileName) # find factors 
   }
 }
 
@@ -96,7 +108,7 @@ nona_df <- data.frame(na.omit(all_df)) # 100 subjects
 imputed_df <- impute_df(all_df) # 144 subjects
 
 # ************* Function Calls *************
-r <- exFac(nom_nona_df, 2)
+r <- exFac(nona_df, 2)
 write.table(r, file="factor_output.txt", sep = "\t")
 
-remSubj(nom_nona_df, 20)
+remSubj(nona_df, 25, "factor_robustness.tsv")
