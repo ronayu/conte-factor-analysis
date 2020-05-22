@@ -101,6 +101,15 @@ remSubj <- function(df, numSubj, fileName){
   }
 }
 
+# Function to extract factors after removing X random subjects
+remExtract <- function(df, numSubj, numFac, fileName){
+  n <- dim(df)[1]
+  toRemove <- sample(1:n, numSubj, replace=F)
+  rem <- df[-toRemove, ]
+  res <- exFac(rem, numFac)
+  write.table(res, file="extraction_output.txt", sep="\'t")
+}
+
 # ************* Initialize Data Frames *************
 all_df <- data.frame(w_msceit) # 144 subjects
 sum(is.na(all_df)/prod(dim(all_df))) # 0.0287037
