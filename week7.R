@@ -1,4 +1,4 @@
-setwd("Documents/Caltech/Senior\ Year/Spring/cs11")
+setwd("/Users/ronayu/Documents/Caltech/Senior Year/Spring/cs11")
 
 # Libraries
 library(corrplot)
@@ -7,9 +7,9 @@ library(nFactors)
 library(paramap)
 
 # ************* Load File *************
-conteData <- read.csv(file = 'PARL_Basics_Scores_20200401_Rona.csv', stringsAsFactors = FALSE)
+conteData <- read.csv(file = 'PARL_Basics_Scores_20200401_Rona.csv', stringsAsFactors = FALSE) # n = 191
 # exclude values with low Quality measure
-cex <- subset(conteData, Include..Exclude. != 'Exclude all data')
+cex <- subset(conteData, Include..Exclude. != 'Exclude all data') # n = 144
 # Added PSS, SQ, and EQ
 w_msceit <- cbind(cex$STAI.State, cex$STAI.Trait, cex$BDI_Total.Total, cex$PANAS.Negative, 
                   cex$PSS.Total, cex$SQ.score, cex$EQ.score,
@@ -25,7 +25,15 @@ w_msceit <- cbind(cex$STAI.State, cex$STAI.Trait, cex$BDI_Total.Total, cex$PANAS
                   cex$X16PF.Basics..Sten..M.Abstractedness, cex$X16PF.Basics..Sten..Q3.Perfectionism,
                   cex$X16PF.Basics..Sten..E.Dominance,cex$X16PF.Basics..Sten..L.Vigilance, 
                   cex$X16PF.Basics..Sten..I.Sensitivity, cex$MSCEIT..standard.scores..B1_Perceiving,
-                  cex$MSCEIT..standard.scores..B2_Using, cex$MSCEIT..standard.scores..B3_Understanding)
+                  cex$MSCEIT..standard.scores..B2_Using, cex$MSCEIT..standard.scores..B3_Understanding,
+                  cex$MSCEIT..standard.scores..B4_Managing)
+names <- cbind("STAI State", "STAI Trait", "BDI Total", "PANAS Negative", "PSS", "SQ", "EQ", 
+               "PANAS Positive", "16PF Tension", "16PF Emotional Stability", "16PF Reasoning",
+               "VCI IQ", "16PF Apprehension", "PRI IQ", "16PF Rule Conciousness", "16PF Openness to Change",
+               "16PF Warmth", "16PF Self Reliance", "16PF Privateness", "16PF Liveliness", 
+               "16PF Social Boldness", "SNI People in Network", "16PF Abstractedness", "16PF Perfectionism", 
+               "16PF Dominance", "16PF Vigilance", "16PF Sensitivity", "MSCEIT B1", "MSCEIT B2", 
+               "MSCEIT B3", "MSCEIT B4")
 
 # ************* Functions *************
 # Function to impute NA values with the column mean
@@ -96,6 +104,7 @@ remSubj <- function(df, numSubj, fileName){
   for(numRemoved in r){
     toRemove <- sample(1:n, numRemoved, replace=F)
     rem <- df[-toRemove, ]
+    print(rem)
     cat("Number of subjects removed is: ", numRemoved, "\n", file=fileName, fill=FALSE, append=TRUE)
     find_factors(rem, fileName) # find factors 
   }
@@ -107,17 +116,15 @@ remExtract <- function(df, numSubj, numFac, fileName){
   toRemove <- sample(1:n, numSubj, replace=F)
   rem <- df[-toRemove, ]
   res <- exFac(rem, numFac)
-  write.table(res, file="extraction_output.txt", sep="\'t")
+  write.table(res, file=fileName, sep="\'t")
 }
 
 # ************* Initialize Data Frames *************
 all_df <- data.frame(w_msceit) # 144 subjects
-sum(is.na(all_df)/prod(dim(all_df))) # 0.0287037
-nona_df <- data.frame(na.omit(all_df)) # 100 subjects
+sum(is.na(all_df)/prod(dim(all_df))) # 0.0367385
+nona_df <- data.frame(na.omit(all_df)) # 100 subjects, 31 variables
 imputed_df <- impute_df(all_df) # 144 subjects
 
 # ************* Function Calls *************
-r <- exFac(nona_df, 2)
-write.table(r, file="factor_output.txt", sep = "\t")
-
-remSubj(nona_df, 25, "factor_robustness.tsv")
+remSubj(nona_df, 50, "factor_robustness.tsv")
+remExtract(nona_df, 1, 3, "factor_output.txt")
