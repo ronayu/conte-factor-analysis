@@ -119,7 +119,7 @@ remExtract <- function(df, numSubj, numFac, fileName){
   toRemove <- sample(1:n, numSubj, replace=F)
   rem <- df[-toRemove, ]
   res <- exFac(rem, numFac)
-  write.table(res, file=fileName, sep="\'t")
+  write.table(res, file=fileName, sep="\t")
 }
 
 # Function to visualize factors with FactoMineR
